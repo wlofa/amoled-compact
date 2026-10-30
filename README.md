@@ -1,6 +1,6 @@
 # AMOLED Compact
 
-A minimal, flat AMOLED theme for [Spicetify](https://spicetify.app), inspired by foobar2000 and old desktop MP3 players. Pure black, thin dividers, square corners, and nothing on screen that isn't doing a job.
+A minimal, flat AMOLED theme for [Spicetify](https://spicetify.app), inspired by foobar2000 and old desktop MP3 players.
 
 ![AMOLED Compact on a playlist page](screenshots/playlist.png)
 
