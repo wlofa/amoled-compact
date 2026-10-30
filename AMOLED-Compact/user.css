@@ -1,0 +1,867 @@
+/* ==========================================================================
+   AMOLED Compact 1.0 — minimal AMOLED theme for Spicetify
+   Built on Spotify's stable hooks (ids, data-testid, aria-label) rather than
+   generated class names. Each numbered section stands alone: if one breaks
+   after a Spotify update, delete it and run `spicetify apply`.
+   ========================================================================== */
+
+:root {
+  /* --- quick knobs ------------------------------------------------------ */
+  --ac-font: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --ac-mono: "SF Mono", Menlo, Consolas, Monaco, monospace;
+  --ac-size: 12px;            /* base text size (also set the 12px in section 5) */
+  /* Corner rounding is set directly in section 5 ("border-radius: 0").
+     It's a plain number there, not a setting here, because a setting on
+     every element in the window measurably slows Spotify down.          */
+  --ac-strip: 48px;           /* top bar height (macOS)                      */
+  --ac-strip-windows: 64px;   /* top bar height on Windows (fits the window buttons) */
+  --ac-search: 360px;         /* search box width                            */
+  --ac-library: 64px;         /* cover column on the left                    */
+  --ac-rail: 56px;            /* vertical player width (panel closed)        */
+  --ac-deck-height: 150px;    /* room kept for the player under the panel    */
+  --ac-volume: 45%;           /* deck volume slider vs. the timeline         */
+  --ac-anim: 320ms;           /* player slide-in; 0ms to turn off            */
+  --ac-rail-art: 40px;        /* cover at the top of the player              */
+  --ac-rail-volume: 120px;    /* length of the vertical volume slider        */
+  --ac-deck-lift: 22px;       /* space under the player's last row/button    */
+  --ac-bio-lines: 8;          /* artist bio lines shown before "Full bio"    */
+  --ac-banner-opacity: 0.55;  /* blurred header backdrop: 0 = off            */
+  --ac-banner-blur: 24px;     /* backdrop blur; lower = more recognisable     */
+  --ac-header-art: 200px;     /* sharp cover in the header's top-left         */
+  --ac-banner-height: 260px;  /* height of the playlist/album header         */
+  --ac-plays-align: flex-start; /* Plays block: flex-start (next to Artist), center or flex-end */
+  --ac-plays-label: center;   /* "Plays" over the numbers: center, or right to match their edge */
+  --ac-line: 1px solid var(--spice-border);
+}
+
+/* Windows draws its own minimize / maximize / close buttons at a fixed
+   height; the top bar is made tall enough to hold them.                 */
+.spotify__os--is-windows {
+  --ac-strip: var(--ac-strip-windows);
+}
+
+/* 1. COLORS ================================================================
+   Spotify's palette → color.ini, and every per-page tint cancelled.      */
+.encore-dark-theme,
+.encore-dark-theme .encore-base-set,
+#main-view [style*="--background-base"],
+#Desktop_PanelContainer_Id [style*="--background-base"] {
+  --background-base: var(--spice-main) !important;
+  --background-highlight: var(--spice-highlight) !important;
+  --background-press: var(--spice-highlight-elevated) !important;
+  --background-elevated-base: var(--spice-main-elevated) !important;
+  --background-elevated-highlight: var(--spice-highlight) !important;
+  --background-elevated-press: var(--spice-highlight-elevated) !important;
+  --background-tinted-base: var(--spice-highlight) !important;
+  --background-tinted-highlight: var(--spice-highlight-elevated) !important;
+  --background-tinted-press: var(--spice-highlight-elevated) !important;
+  --background-base-min-contrast: var(--spice-subtext) !important;
+  --text-base: var(--spice-text) !important;
+  --text-subdued: var(--spice-subtext) !important;
+  --text-bright-accent: var(--spice-button) !important;
+  --essential-base: var(--spice-text) !important;
+  --essential-subdued: var(--spice-button-disabled) !important;
+  --essential-bright-accent: var(--spice-button) !important;
+  --decorative-base: var(--spice-text) !important;
+  --decorative-subdued: var(--spice-border) !important;
+}
+.encore-dark-theme .encore-bright-accent-set {
+  --background-base: var(--spice-button) !important;
+  --background-highlight: var(--spice-button-active) !important;
+  --background-press: var(--spice-button-active) !important;
+}
+/* Gradient layers: empty divs that do nothing but paint a colour. Album,
+   playlist, Liked Songs and Home pages all use them, at different depths.
+   Anything painted with an image (url) is a cover, not a gradient, and
+   is left alone. Kept cheap: no ancestor walks, no case-insensitive or
+   class-name substring matching (both are slow on big pages).        */
+[data-testid="entity-header"] > div:empty,
+#main-view div:empty[style*="background"]:not(.main-topBar-background):not([style*="url("]),
+.main-entityHeader-backgroundColor,
+.main-entityHeader-overlay,
+.main-actionBarBackground-background,
+.main-home-homeHeader {
+  display: none !important;
+}
+.main-topBar-background {
+  background: var(--spice-main) !important;
+}
+
+/* 2. FRAME =================================================================
+   Library | main | right column. The right column holds the Now Playing
+   panel; the player sits on top of that column and picks its own shape
+   from how wide the column is (section 4):
+     panel open   → column is wide   → horizontal deck under the panel
+     panel closed → column is narrow → vertical rail on the window edge  */
+.Root {
+  --panel-gap: 0px !important;
+}
+.Root > div:has(> #main-view) {
+  grid-template-areas:
+    "top-banner   top-banner top-banner"
+    "global-nav   global-nav global-nav"
+    "left-sidebar main-view  right-sidebar"
+    "left-sidebar main-view  now-playing-bar" !important;
+  grid-template-columns: auto minmax(0, 1fr) minmax(var(--ac-rail), auto) !important;
+  grid-template-rows: auto auto 1fr 0px !important;
+  gap: 0 !important;
+  padding: 0 !important;
+  background-color: var(--spice-main) !important;
+}
+#Desktop_LeftSidebar_Id,
+#main-view,
+.Root > div > div:has(> .Root__right-sidebar-peek) {
+  background-color: var(--spice-main) !important;
+}
+#Desktop_LeftSidebar_Id {
+  border-right: var(--ac-line);
+}
+.Root > div > div:has(> .Root__right-sidebar-peek) {
+  border-left: var(--ac-line);
+  padding-bottom: var(--ac-deck-height) !important;  /* room for the deck */
+}
+/* The player's slot: the whole right column, top to bottom. It's see-through
+   and click-through; only the player itself catches the mouse.           */
+.Root > div > div:has(> [data-testid="now-playing-bar"]) {
+  grid-row: 3 / 5 !important;
+  grid-column: 3 / 4 !important;
+  container: ac-player / inline-size;
+  z-index: 6;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  overflow: hidden !important;
+  background: transparent !important;
+  pointer-events: none;
+}
+[data-testid="now-playing-bar"] {
+  pointer-events: auto;
+}
+
+/* 3. TOP BAR =============================================================== */
+#global-nav-bar {
+  height: var(--ac-strip) !important;
+  min-height: 0 !important;
+  padding-block: 0 !important;
+  background-color: var(--spice-main) !important;
+  border-bottom: var(--ac-line);
+}
+#global-nav-bar form[role="search"] {
+  width: var(--ac-search) !important;
+  min-width: 0 !important;
+  height: 30px !important;
+  min-height: 0 !important;
+  border: var(--ac-line) !important;
+  background-color: var(--spice-main) !important;
+}
+#global-nav-bar form[role="search"] input {
+  height: 30px !important;
+  min-height: 0 !important;
+  padding-block: 0 !important;
+  background-color: transparent !important;
+}
+#global-nav-bar button[aria-label="Home"],
+#global-nav-bar button[aria-label="Browse"],
+#global-nav-bar button[aria-label="What's New"],
+#global-nav-bar button[aria-label="Listening activity"] {
+  display: none !important;
+}
+
+/* 4. PLAYER ================================================================
+   One player, two shapes. Which one shows depends on the width of the right
+   column (180px is the switch point). Each slides in when it takes over. */
+@keyframes ac-deck-in { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes ac-rail-in { from { transform: translateX(100%); } to { transform: none; } }
+
+/* --- shared --- */
+[data-testid="now-playing-bar"],
+[data-testid="now-playing-bar"] div {
+  min-width: 0 !important;
+}
+[data-testid="now-playing-bar"] {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  background: var(--spice-main) !important;
+}
+[data-testid="now-playing-bar"] [data-testid="lyrics-button"],
+[data-testid="now-playing-bar"] [data-testid="pip-toggle-button"],
+[data-testid="now-playing-bar"] button[aria-label="Connect to a device"] {
+  display: none !important;
+}
+[data-testid="control-button-playpause"] > span {
+  background-color: transparent !important;
+  color: var(--spice-text) !important;
+  border: var(--ac-line) !important;
+}
+[data-testid="control-button-playpause"]:hover > span {
+  color: var(--spice-button) !important;
+}
+[data-testid="progress-bar"] {
+  --progress-bar-height: 3px !important;
+  --progress-bar-radius: 0px !important;
+}
+.x-progressBar-progressBarBg {
+  background-color: var(--spice-border) !important;
+}
+.x-progressBar-fillColor {
+  background-color: var(--spice-button) !important;
+}
+/* Tooltips for the player open near the window's right edge; while the
+   mouse is over the player, nudge them left so they stay on screen.      */
+body:has([data-testid="now-playing-bar"]:hover) :is([role="tooltip"], [data-encore-id="tooltip"]) {
+  translate: -45% 0;
+}
+
+/* --- DECK: panel open ---------------------------------------------------
+   Timeline, then the buttons, then queue / volume / fullscreen.          */
+@container ac-player (min-width: 180px) {
+  [data-testid="now-playing-bar"] {
+    height: auto !important;
+    border-top: var(--ac-line);
+    animation: ac-deck-in var(--ac-anim) cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  [data-testid="now-playing-bar"] > div {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    height: auto !important;
+    gap: 10px;
+    padding: 14px 16px var(--ac-deck-lift) !important;
+  }
+  [data-testid="now-playing-bar"] > div > div:has(> [data-testid="now-playing-widget"]) {
+    display: none !important;
+  }
+  [data-testid="now-playing-bar"] > div > div {
+    width: 100% !important;
+    max-width: none !important;
+    flex: 0 0 auto !important;
+  }
+  [data-testid="player-controls"] {
+    width: 100% !important;
+    gap: 6px;
+  }
+  [data-testid="general-controls"],
+  [data-testid="general-controls"] > div {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+  }
+  [data-testid="general-controls"] {
+    justify-content: space-between !important;
+    width: 100% !important;
+    margin: 0 !important;
+  }
+  [data-testid="player-controls"] > div:has(> div > [data-testid="playback-progressbar"]) {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  [data-testid="player-controls"] div:has(> [data-testid="playback-progressbar"]) {
+    flex: 1 1 auto !important;
+  }
+  [data-testid="now-playing-bar"] > div > div:has(> div > [data-testid="volume-bar"]),
+  [data-testid="now-playing-bar"] > div > div:has(> div > [data-testid="volume-bar"]) > div {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+  }
+  [data-testid="volume-bar"] {
+    --slider-width: 100% !important;
+    flex: 0 0 var(--ac-volume) !important;
+    width: var(--ac-volume) !important;
+    max-width: none !important;
+  }
+}
+
+/* --- RAIL: panel closed --------------------------------------------------
+   Top to bottom: cover (click = open the panel), shuffle, previous, play,
+   next, repeat, elapsed, timeline (starts at the top), total, queue,
+   volume (louder = higher), mute, fullscreen. The rotated bars use
+   Spotify's own accessible slider as an invisible drag surface, because
+   the regular one only understands sideways drags.                      */
+@container ac-player (max-width: 179.98px) {
+  [data-testid="now-playing-bar"] {
+    height: 100% !important;
+    border-left: var(--ac-line);
+    animation: ac-rail-in var(--ac-anim) cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  [data-testid="now-playing-bar"] > div {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    gap: 14px;
+    padding: 12px 0 var(--ac-deck-lift) !important;
+  }
+  [data-testid="now-playing-bar"] > div > div {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    flex: 0 0 auto !important;
+    gap: 10px;
+  }
+  [data-testid="now-playing-widget"] {
+    flex-direction: column !important;
+    align-items: center !important;
+    padding: 0 !important;
+  }
+  [data-testid="now-playing-widget"] > :not([data-testid="CoverSlotCollapsed__container"]),
+  [data-testid="now-playing-bar"] > div > div:has(> [data-testid="now-playing-widget"]) > :not([data-testid="now-playing-widget"]) {
+    display: none !important;
+  }
+  [data-testid="cover-art-button"] div[style] {
+    width: var(--ac-rail-art) !important;
+    height: var(--ac-rail-art) !important;
+  }
+  [data-testid="now-playing-bar"] > div > div:has(> [data-testid="player-controls"]) {
+    flex: 1 1 auto !important;
+  }
+  [data-testid="player-controls"] {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    width: 100% !important;
+    height: 100% !important;
+    gap: 12px;
+  }
+  [data-testid="general-controls"],
+  [data-testid="general-controls"] > div {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 8px;
+    margin: 0 !important;
+    width: auto !important;
+  }
+  [data-testid="player-controls"] > div:has(> div > [data-testid="playback-progressbar"]) {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    min-height: 0 !important;
+    gap: 6px;
+  }
+  /* every box in the rail loses Spotify's side spacing, so things sit on
+     the rail's center line */
+  [data-testid="now-playing-bar"] > div > div,
+  [data-testid="now-playing-bar"] > div > div > div,
+  [data-testid="volume-bar"],
+  [data-testid="volume-bar"] > *,
+  [data-testid="general-controls"] > * {
+    margin-inline: 0 !important;
+    padding-inline: 0 !important;
+  }
+  [data-testid="playback-position"],
+  [data-testid="playback-duration"] {
+    display: flex !important;
+    justify-content: center !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    text-align: center !important;
+    font-size: 10px !important;
+  }
+  [data-testid="playback-position"] *,
+  [data-testid="playback-duration"] * {
+    width: auto !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    text-align: center !important;
+  }
+  [data-testid="player-controls"] div:has(> [data-testid="playback-progressbar"]),
+  [data-testid="volume-bar"] div:has(> .playback-progressbar) {
+    position: relative !important;
+    container-type: size;
+    width: 24px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  [data-testid="player-controls"] div:has(> [data-testid="playback-progressbar"]) {
+    flex: 1 1 auto !important;
+    height: auto !important;
+    min-height: 60px !important;
+  }
+  [data-testid="volume-bar"] div:has(> .playback-progressbar) {
+    flex: 0 0 auto !important;
+    height: var(--ac-rail-volume) !important;
+  }
+  [data-testid="player-controls"] [data-testid="playback-progressbar"],
+  [data-testid="volume-bar"] .playback-progressbar {
+    position: absolute !important;
+    left: 50% !important;
+    width: 100cqh !important;
+    height: 12px !important;
+    margin: 0 !important;
+    transform-origin: 0 0 !important;
+  }
+  [data-testid="player-controls"] [data-testid="playback-progressbar"] {
+    top: 0 !important;
+    transform: rotate(90deg) translateY(-50%) !important;
+  }
+  [data-testid="volume-bar"] .playback-progressbar {
+    top: 100% !important;
+    transform: rotate(-90deg) translateY(-50%) !important;
+  }
+  [data-testid="now-playing-bar"] .playback-progressbar .progress-bar {
+    width: 100% !important;
+  }
+  /* invisible drag surface; its spoken label stays for screen readers but
+     is no longer drawn on screen */
+  [data-testid="now-playing-bar"] .playback-progressbar > label.hidden-visually {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    clip: auto !important;
+    clip-path: none !important;
+    overflow: hidden !important;
+    color: transparent !important;
+    font-size: 0 !important;
+    line-height: 0 !important;
+    z-index: 3;
+  }
+  [data-testid="now-playing-bar"] .playback-progressbar > label.hidden-visually > input {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    opacity: 0 !important;
+    cursor: pointer !important;
+  }
+  [data-testid="now-playing-bar"] > div > div:has(> div > [data-testid="volume-bar"]) > div {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 10px;
+  }
+  [data-testid="volume-bar"] {
+    --slider-width: 100% !important;
+    display: flex !important;
+    flex-direction: column-reverse !important;
+    align-items: center !important;
+    align-self: center !important;
+    width: 100% !important;
+    gap: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-testid="now-playing-bar"] { animation: none !important; }
+}
+
+/* 5. SHAPE & TYPE ==========================================================
+   Kept cheap on purpose: these rules touch every element, so they use plain
+   values (no var()) and simple selectors. Change corners or text size
+   right here.                                                           */
+*,
+*::before,
+*::after {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+body,
+button,
+input {
+  font-family: var(--ac-font) !important;
+  font-size: var(--ac-size);
+  letter-spacing: normal !important;
+}
+[data-encore-id="text"] {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+  font-size: 12px !important;
+  letter-spacing: normal !important;
+}
+h1, h1 [data-encore-id="text"] { font-size: 18px !important; font-weight: 700 !important; }
+h2, h2 [data-encore-id="text"] { font-size: 13px !important; font-weight: 700 !important; }
+.main-trackList-rowDuration,
+.main-trackList-rowMarker,
+.main-trackList-rowMarker [data-encore-id="text"],
+[data-testid="playback-position"],
+[data-testid="playback-duration"] {
+  font-family: var(--ac-mono) !important;
+  font-variant-numeric: tabular-nums;
+}
+/* menus get a thin outline so they stand out on black. Tooltips don't: a
+   tooltip box exists, empty and zero-sized, a moment before its text
+   appears, and a border on it showed up as a stray dot.                */
+[role="menu"] {
+  border: var(--ac-line) !important;
+  background-color: var(--spice-main-elevated) !important;
+}
+
+/* 6. LIBRARY ===============================================================
+   Always a column of covers. Collapse the library once (icon at its top
+   left); after that the open button is hidden, and Spotify remembers.    */
+#Desktop_LeftSidebar_Id,
+.Root > div > div[style*="--left-sidebar-width"] {
+  --left-sidebar-width: 64 !important;
+}
+#Desktop_LeftSidebar_Id {
+  width: var(--ac-library) !important;
+  min-width: 0 !important;
+  max-width: var(--ac-library) !important;
+  overflow: hidden !important;
+}
+#Desktop_LeftSidebar_Id header:not(:has(h1)),
+#Desktop_LeftSidebar_Id button[aria-label="Open Your Library"],
+#Desktop_LeftSidebar_Id button[aria-label^="Expand Your Library"],
+#Desktop_LeftSidebar_Id header h1,
+#Desktop_LeftSidebar_Id header button[aria-label="Create"],
+#Desktop_LeftSidebar_Id header + div,
+#Desktop_LeftSidebar_Id div:has(> [role="search"]),
+#Desktop_LeftSidebar_Id [role="grid"] [class$="list-row__header"],
+#Desktop_LeftSidebar_Id .LayoutResizer__resize-bar,
+#Desktop_LeftSidebar_Id .os-scrollbar-vertical {
+  display: none !important;
+}
+/* every layer between the column edge and the cover gets zero side
+   spacing, then the cover box is centered */
+#Desktop_LeftSidebar_Id [role="grid"],
+#Desktop_LeftSidebar_Id [role="grid"] [role="presentation"],
+#Desktop_LeftSidebar_Id [role="grid"] [role="row"] {
+  padding-inline: 0 !important;
+  margin-inline: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+}
+#Desktop_LeftSidebar_Id [role="grid"] [role="gridcell"] {
+  display: flex !important;
+  justify-content: center !important;
+  width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+/* the cover's box: Spotify lays it out as a grid with a column for the
+   (hidden) title plus a gap, which made it wider than the column and
+   pushed the cover left. As a plain block it hugs the cover exactly.    */
+#Desktop_LeftSidebar_Id [role="grid"] [role="gridcell"] > * {
+  display: block !important;
+  grid-template-columns: none !important;
+  gap: 0 !important;
+  width: fit-content !important;
+  padding: 4px !important;
+  margin-inline: auto !important;
+}
+#Desktop_LeftSidebar_Id .main-yourLibraryX-libraryRootlist {
+  padding-inline: 0 !important;
+}
+
+/* 7. PLAYLIST / ALBUM PAGES ================================================
+   Header: the sharp cover in the top-left, title / description / details to
+   its right, all over a heavily blurred copy of the cover. The blurred copy
+   comes from theme.js, which hands the cover's address to the header as
+   --ac-cover (CSS alone can't show one image twice).                      */
+[data-testid="entity-header"] {
+  position: relative !important;
+  isolation: isolate;
+  overflow: hidden !important;
+  min-height: 0 !important;
+  height: auto !important;
+  max-height: none !important;
+  padding: 0 !important;
+  background: var(--spice-main) !important;
+  border-bottom: var(--ac-line);
+}
+/* blurred banner; oversized so the blur has no soft edges */
+[data-testid="entity-header"]::before {
+  content: "";
+  position: absolute;
+  inset: -80px;
+  z-index: -2;
+  pointer-events: none;
+  background-image: var(--ac-cover, none);
+  background-size: cover;
+  background-position: center;
+  filter: blur(var(--ac-banner-blur)) saturate(1.15);
+  opacity: var(--ac-banner-opacity);
+  will-change: transform;
+}
+/* fade to black at the bottom so the title stays readable */
+[data-testid="entity-header"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 0%, rgba(0, 0, 0, 0.45) 60%, var(--spice-main) 100%);
+}
+[data-testid="entity-header"] .main-entityHeader-contentWrapper {
+  position: relative !important;
+  display: flex !important;
+  align-items: flex-end !important;
+  gap: 24px !important;
+  min-height: var(--ac-banner-height) !important;
+  height: auto !important;
+  padding-top: 28px !important;
+  padding-bottom: 18px !important;
+}
+/* the sharp cover, left of the title, its bottom level with the last line
+   of details. Sized explicitly at every level: on Windows,
+   Spotify's own CSS collapses this frame to 0 height otherwise.          */
+[data-testid="entity-header"] .main-entityHeader-imageContainer {
+  display: block !important;
+  position: relative !important;
+  inset: auto !important;
+  align-self: flex-end !important;
+  flex: 0 0 var(--ac-header-art) !important;
+  width: var(--ac-header-art) !important;
+  height: var(--ac-header-art) !important;
+  min-width: var(--ac-header-art) !important;
+  min-height: var(--ac-header-art) !important;
+  max-width: none !important;
+  max-height: none !important;
+  aspect-ratio: auto !important;
+  margin: 0 !important;
+  z-index: auto !important;
+}
+[data-testid="entity-header"] .main-entityHeader-imageContainer,
+[data-testid="entity-header"] .main-entityHeader-imageContainer * {
+  background-size: cover !important;
+  background-position: center !important;
+}
+[data-testid="entity-header"] .main-entityHeader-imageContainer *:not(img) {
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  flex: 1 1 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  aspect-ratio: auto !important;
+}
+[data-testid="entity-header"] .main-entityHeader-imageContainer img {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  object-fit: cover !important;
+  opacity: 1 !important;
+  filter: none !important;
+  transform: none !important;
+}
+/* Some headers have no cover box at all (only a background picture);
+   theme.js marks them and the cover is drawn here from the same address. */
+[data-testid="entity-header"][data-ac-nocover] .main-entityHeader-contentWrapper::before {
+  content: "";
+  display: block;
+  order: -1;
+  align-self: flex-end;
+  flex: 0 0 var(--ac-header-art);
+  width: var(--ac-header-art);
+  height: var(--ac-header-art);
+  background-image: var(--ac-cover, none);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+[data-testid="entity-header"] .main-entityHeader-headerText {
+  position: relative !important;
+  min-width: 0 !important;
+}
+/* details: hide the "Public Playlist" label, avatars and invite button;
+   the description stays, two lines at most */
+[data-testid="entity-header"] [data-testid="edit-image-button"],
+[data-testid="entity-header"] .main-entityHeader-imageContainer > div > div:not(.main-entityHeader-image),
+[data-testid="entity-header"] .main-entityHeader-headerText > span:first-child,
+[data-testid="entity-header"] .main-entityHeader-headerText figure,
+[data-testid="entity-header"] button[aria-label^="Invite collaborators"] {
+  display: none !important;
+}
+[data-testid="entity-header"] .playlist-playlist-playlistDescription {
+  display: -webkit-box !important;
+  -webkit-box-orient: vertical !important;
+  -webkit-line-clamp: 2 !important;
+  line-clamp: 2 !important;
+  overflow: hidden !important;
+  max-width: 70ch !important;
+  margin: 4px 0 6px !important;
+  color: var(--spice-subtext) !important;
+  line-height: 1.45 !important;
+}
+[data-testid="entity-header"] h1 {
+  font-size: 26px !important;
+  line-height: 1.2 !important;
+}
+/* action bar: keep play / shuffle / ⋯ / search / sort */
+[data-testid="action-bar"] {
+  padding-block: 6px !important;
+  border-bottom: var(--ac-line);
+}
+[data-testid="watch-feed-entity-button"],
+[data-testid="action-bar"] button[aria-label^="Download"],
+[data-testid="playlist-toolbar"] {
+  display: none !important;
+}
+[data-testid="action-bar"] [data-encore-id="buttonPrimary"] > span {
+  inline-size: 32px !important;
+  block-size: 32px !important;
+  min-inline-size: 32px !important;
+  min-block-size: 32px !important;
+  padding: 0 !important;
+}
+
+/* 8. NOW PLAYING PANEL =====================================================
+   Cover, title/artist, then the artist bio cut to a few lines. Clicking
+   the bio (or "Full bio & stats") opens Spotify's full About page.       */
+#Desktop_PanelContainer_Id,
+#Desktop_PanelContainer_Id > div {
+  background-color: var(--spice-main) !important;
+}
+/* Next in queue, Credits (sections) and On tour / merch (lists) */
+#Desktop_PanelContainer_Id section,
+#Desktop_PanelContainer_Id div:has(> ul) {
+  display: none !important;
+}
+/* The artist card, found by the position of its heading. Its parts are
+   reached as first/second child, never by reading inline styles: rules
+   keyed on inline styles get rechecked on every scroll frame.          */
+#Desktop_PanelContainer_Id div:has(> div > div > div > h2):not(:has(> div > section)) {
+  position: relative !important;
+  background: transparent !important;
+  padding: 0 !important;
+  cursor: pointer;
+}
+/* Photo banner (first child): invisible and zero-height, but its button is
+   stretched over the whole card, so a click anywhere opens the full About. */
+#Desktop_PanelContainer_Id div:has(> div > div > div > h2):not(:has(> div > section)) > :first-child {
+  position: static !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  visibility: hidden !important;
+  background-image: none !important;
+}
+#Desktop_PanelContainer_Id div:has(> div > div > div > h2):not(:has(> div > section)) > :first-child * {
+  position: static !important;
+}
+#Desktop_PanelContainer_Id div:has(> div > div > div > h2):not(:has(> div > section)) > :first-child button {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 2;
+  visibility: visible !important;
+  opacity: 0 !important;
+  cursor: pointer;
+}
+/* Text (second child): only the bio stays */
+#Desktop_PanelContainer_Id div:has(> div > div > div > h2):not(:has(> div > section)) > :nth-child(2) {
+  background: transparent !important;
+  padding: 0 !important;
+}
+#Desktop_PanelContainer_Id div:has(> div > div > div > h2):not(:has(> div > section)) > :nth-child(2) > :not(span) {
+  display: none !important;
+}
+#Desktop_PanelContainer_Id div:has(> div > div > div > h2):not(:has(> div > section)) > :nth-child(2) > span {
+  display: -webkit-box !important;
+  -webkit-box-orient: vertical !important;
+  -webkit-line-clamp: var(--ac-bio-lines) !important;
+  line-clamp: var(--ac-bio-lines) !important;
+  overflow: hidden !important;
+  color: var(--spice-subtext) !important;
+  line-height: 1.5 !important;
+  padding-top: 8px !important;
+  border-top: var(--ac-line);
+}
+#Desktop_PanelContainer_Id div:has(> div > div > div > h2):not(:has(> div > section)) > :nth-child(2)::after {
+  content: "Full bio & stats  \203A";
+  display: block;
+  padding-top: 8px;
+  color: var(--spice-button);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+#Desktop_PanelContainer_Id div:has(> div > div > div > h2):not(:has(> div > section)):hover > :nth-child(2) > span {
+  color: var(--spice-text) !important;
+}
+
+/* 9. TRACK LIST ============================================================ */
+.main-trackList-trackListHeader {
+  background-color: var(--spice-main) !important;
+  border-bottom: var(--ac-line) !important;
+}
+.main-trackList-trackListRow:hover,
+.main-trackList-trackListRow:focus-within {
+  background-color: var(--spice-highlight) !important;
+}
+.main-trackList-trackListRow.main-trackList-selected,
+.main-trackList-trackListRow.main-trackList-selected:hover {
+  background-color: rgba(var(--spice-rgb-button), 0.18) !important;
+}
+.main-trackList-active .main-trackList-rowTitle,
+.main-trackList-active .main-trackList-rowMarker {
+  color: var(--spice-button) !important;
+}
+
+/* Plays column (album and artist pages). It's the cell just before the
+   duration. Found by accessibility role and position, because Spotify's
+   class names for the track list differ between builds (Mac vs Windows).
+   The label and every number get the same fixed-width box, sized for the
+   longest count (188,159,576); numbers sit right-aligned in it, so digits
+   line up, and "Plays" is centered over them.                           */
+:is([data-testid="album-page"], [data-testid="artist-page"]) :is([role="columnheader"], [role="gridcell"]):nth-last-child(2) {
+  justify-content: var(--ac-plays-align) !important;
+}
+:is([data-testid="album-page"], [data-testid="artist-page"]) :is([role="columnheader"], [role="gridcell"]):nth-last-child(2) > :first-child {
+  flex: 0 0 auto !important;
+  width: 10.5ch !important;
+  min-width: 10.5ch !important;
+  max-width: 10.5ch !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  font-variant-numeric: tabular-nums;
+}
+:is([data-testid="album-page"], [data-testid="artist-page"]) [role="gridcell"]:nth-last-child(2) > :first-child {
+  display: block !important;
+  text-align: right !important;
+}
+:is([data-testid="album-page"], [data-testid="artist-page"]) [role="columnheader"]:nth-last-child(2) > :first-child,
+:is([data-testid="album-page"], [data-testid="artist-page"]) [role="columnheader"]:nth-last-child(2) > :first-child * {
+  justify-content: var(--ac-plays-label) !important;
+  text-align: var(--ac-plays-label) !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  margin-inline: 0 !important;
+  padding-inline: 0 !important;
+}
+
+/* 10. CARDS (home, search, artist pages) =================================== */
+[data-encore-id="card"],
+.main-card-card {
+  background-color: transparent !important;
+  border: var(--ac-line);
+}
+[data-encore-id="card"]:hover,
+.main-card-card:hover {
+  background-color: var(--spice-highlight) !important;
+}
+
+/* 11. SCROLLBARS =========================================================== */
+.os-scrollbar-handle {
+  background: var(--spice-misc) !important;
+}
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--spice-main); }
+::-webkit-scrollbar-thumb { background: var(--spice-misc); }

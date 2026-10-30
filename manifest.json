@@ -1,0 +1,13 @@
+[
+  {
+    "name": "AMOLED Compact",
+    "description": "Minimal, flat AMOLED theme inspired by foobar2000 and old desktop MP3 players. Cover-only library, blurred cover-art headers, and a player that turns vertical when the Now Playing panel is closed.",
+    "preview": "screenshots/playlist.png",
+    "readme": "README.md",
+    "usercss": "AMOLED-Compact/user.css",
+    "schemes": "AMOLED-Compact/color.ini",
+    "include": ["https://raw.githubusercontent.com/wlofa/amoled-compact/main/AMOLED-Compact/theme.js"],
+    "authors": [{ "name": "wlofa", "url": "https://github.com/wlofa" }],
+    "tags": ["minimal", "dark", "amoled"]
+  }
+]
